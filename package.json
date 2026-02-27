@@ -1,0 +1,11 @@
+{
+  "name": "qdanuncio",
+  "version": "1.0.0",
+  "description": "Sistema de mídia para TV — painel web + player fullscreen",
+  "scripts": {
+    "backend": "cd backend && node src/index.js",
+    "backend:dev": "cd backend && node --watch src/index.js",
+    "setup-db": "cd backend && node setup-db.js",
+    "setup-db:client": "cd backend && node setup-db.js --create-client"
+  }
+}

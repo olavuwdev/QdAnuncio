@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QdAnuncio</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6c47ff;
+      --primary-dark: #4f2fe0;
+      --accent: #ff6b35;
+      --bg: #0f0f13;
+      --bg2: #1a1a24;
+      --bg3: #22222f;
+      --card: #1e1e2e;
+      --border: #2e2e42;
+      --text: #e8e8f0;
+      --text2: #9090a8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    button { cursor: pointer; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+    a { color: var(--primary); text-decoration: none; }
+
+    /* ===== UTILITIES ===== */
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: 8px; }
+    .gap-2 { gap: 16px; }
+    .gap-3 { gap: 24px; }
+    .w-full { width: 100%; }
+    .text-center { text-align: center; }
+    .text-sm { font-size: 0.85rem; }
+    .text-muted { color: var(--text2); }
+    .font-bold { font-weight: 700; }
+    .mt-1 { margin-top: 8px; }
+    .mt-2 { margin-top: 16px; }
+    .mt-3 { margin-top: 24px; }
+    .mb-1 { margin-bottom: 8px; }
+    .mb-2 { margin-bottom: 16px; }
+
+    /* ===== PAGE VIEWS ===== */
+    .page { display: none; min-height: 100vh; }
+    .page.active { display: flex; }
+
+    /* ===== COMPONENTS ===== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+      border: none; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #c53030; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+    .btn-icon { padding: 8px; border-radius: 8px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .input-field {
+      width: 100%; padding: 12px 14px; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 0.9rem; transition: border-color 0.2s;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); }
+    .input-field::placeholder { color: var(--text2); }
+
+    .label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; box-shadow: var(--shadow);
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-green { background: rgba(34,197,94,0.15); color: var(--success); }
+    .badge-red { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .badge-purple { background: rgba(108,71,255,0.15); color: var(--primary); }
+    .badge-orange { background: rgba(255,107,53,0.15); color: var(--accent); }
+
+    .alert {
+      padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; margin-bottom: 12px;
+    }
+    .alert-error { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .alert-success { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+
+    /* ===== TOAST ===== */
+    #toast-container {
+      position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      padding: 12px 18px; border-radius: 10px; font-size: 0.9rem; font-weight: 500;
+      backdrop-filter: blur(10px); animation: slideIn 0.3s ease; min-width: 240px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .toast-success { background: rgba(34,197,94,0.9); color: #fff; }
+    .toast-error { background: rgba(239,68,68,0.9); color: #fff; }
+    .toast-info { background: rgba(108,71,255,0.9); color: #fff; }
+    @keyframes slideIn { from { opacity:0; transform: translateX(40px); } to { opacity:1; transform: translateX(0); } }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px; max-width: 480px; width: 100%; box-shadow: var(--shadow);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ===== LOGIN PAGE ===== */
+    #page-login {
+      flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 0%, rgba(108,71,255,0.15) 0%, transparent 60%), var(--bg);
+    }
+    .login-logo { font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; }
+    .login-logo span { color: var(--primary); }
+    .login-subtitle { color: var(--text2); margin-bottom: 32px; }
+    .login-card { width: 100%; max-width: 400px; }
+    .login-form { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ===== MENU PAGE ===== */
+    #page-menu {
+      flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 0%, rgba(108,71,255,0.1) 0%, transparent 60%), var(--bg);
+    }
+    .menu-header { text-align: center; margin-bottom: 48px; }
+    .menu-header h1 { font-size: 2rem; font-weight: 900; }
+    .menu-header p { color: var(--text2); margin-top: 6px; }
+    .menu-buttons { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+    .menu-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      width: 200px; height: 200px; border-radius: 20px; font-size: 1.1rem; font-weight: 800;
+      border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .menu-btn-icon { font-size: 2.5rem; }
+    .menu-btn-ofertas { background: linear-gradient(135deg, var(--primary), #9b59ff); color: #fff; }
+    .menu-btn-ofertas:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(108,71,255,0.4); }
+    .menu-btn-admin { background: linear-gradient(135deg, var(--accent), #ff9e60); color: #fff; }
+    .menu-btn-admin:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(255,107,53,0.4); }
+    .menu-logout { margin-top: 32px; }
+
+    /* ===== PLAYER PAGE (OFERTAS) ===== */
+    #page-player {
+      position: fixed; inset: 0; background: #000; z-index: 100;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    .player-slide {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.6s ease;
+    }
+    .player-slide.active { opacity: 1; }
+    .player-slide.zoom-in { animation: zoomIn 0.6s ease forwards; }
+    .player-slide.slide-in { animation: slideInLeft 0.6s ease forwards; }
+    .player-slide img, .player-slide video {
+      max-width: 100%; max-height: 100vh; width: 100%; height: 100vh; object-fit: contain;
+    }
+    @keyframes zoomIn { from { opacity:0; transform: scale(1.1); } to { opacity:1; transform: scale(1); } }
+    @keyframes slideInLeft { from { opacity:0; transform: translateX(60px); } to { opacity:1; transform: translateX(0); } }
+    .player-ui {
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; z-index: 200; opacity: 0; transition: opacity 0.3s;
+    }
+    #page-player:hover .player-ui { opacity: 1; }
+    .player-progress {
+      position: fixed; bottom: 0; left: 0; height: 3px; background: var(--primary);
+      z-index: 200; transition: width 0.1s linear;
+    }
+    .player-counter {
+      position: fixed; top: 16px; right: 16px; background: rgba(0,0,0,0.5);
+      color: #fff; padding: 4px 10px; border-radius: 99px; font-size: 0.8rem;
+      z-index: 200; opacity: 0; transition: opacity 0.3s;
+    }
+    #page-player:hover .player-counter { opacity: 1; }
+    .player-loading {
+      position: fixed; inset: 0; background: #000; display: flex; align-items: center;
+      justify-content: center; z-index: 300; flex-direction: column; gap: 16px;
+    }
+    .spinner {
+      width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== ADMIN PAGE ===== */
+    #page-admin {
+      flex-direction: column; min-height: 100vh;
+    }
+    .admin-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px; background: var(--bg2); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .admin-logo { font-size: 1.2rem; font-weight: 900; }
+    .admin-logo span { color: var(--primary); }
+    .admin-nav { display: flex; gap: 4px; }
+    .nav-btn {
+      padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+      border: none; background: transparent; color: var(--text2); cursor: pointer; transition: all 0.2s;
+    }
+    .nav-btn:hover { background: var(--bg3); color: var(--text); }
+    .nav-btn.active { background: var(--primary); color: #fff; }
+    .admin-content { flex: 1; padding: 24px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+    /* ===== SECTION TABS ===== */
+    .section { display: none; }
+    .section.active { display: block; }
+    .section-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; }
+
+    /* ===== MEDIA GRID ===== */
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .media-card {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+      transition: border-color 0.2s; cursor: pointer;
+    }
+    .media-card:hover { border-color: var(--primary); }
+    .media-card.inactive { opacity: 0.5; }
+    .media-thumb {
+      width: 100%; aspect-ratio: 16/9; object-fit: cover; background: var(--bg3);
+      display: flex; align-items: center; justify-content: center; font-size: 2rem;
+    }
+    .media-thumb img, .media-thumb video { width: 100%; height: 100%; object-fit: cover; }
+    .media-info { padding: 10px 12px; }
+    .media-title { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-meta { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+    .media-actions { display: flex; gap: 6px; margin-top: 8px; }
+
+    /* ===== PLAYLIST ===== */
+    .playlist-list { display: flex; flex-direction: column; gap: 12px; }
+    .playlist-item {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .playlist-item-info { display: flex; flex-direction: column; gap: 4px; }
+    .playlist-item-name { font-weight: 700; }
+    .playlist-item-actions { display: flex; gap: 8px; }
+
+    /* Drag-and-drop playlist items */
+    .dnd-list { display: flex; flex-direction: column; gap: 8px; }
+    .dnd-item {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: grab;
+      transition: border-color 0.2s;
+    }
+    .dnd-item:active { cursor: grabbing; }
+    .dnd-item.dragging { opacity: 0.4; border-style: dashed; }
+    .dnd-item.drag-over { border-color: var(--primary); background: rgba(108,71,255,0.05); }
+    .dnd-handle { color: var(--text2); font-size: 1.1rem; }
+    .dnd-thumb {
+      width: 64px; height: 36px; object-fit: cover; border-radius: 6px; background: var(--bg3);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+    .dnd-thumb img, .dnd-thumb video { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+    .dnd-info { flex: 1; min-width: 0; }
+    .dnd-title { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dnd-meta { font-size: 0.75rem; color: var(--text2); }
+    .dnd-duration { display: flex; align-items: center; gap: 6px; }
+    .dnd-duration input {
+      width: 80px; padding: 4px 8px; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 0.8rem; text-align: center;
+    }
+
+    /* ===== SETTINGS ===== */
+    .settings-form { max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
+    .settings-group { display: flex; flex-direction: column; gap: 8px; }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .toggle {
+      position: relative; display: inline-block; width: 48px; height: 26px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; inset: 0; background: var(--border); border-radius: 99px; transition: 0.2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--primary); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+    /* ===== ACCOUNT ===== */
+    .account-form { max-width: 440px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--text2);
+    }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state-text { font-size: 0.95rem; }
+
+    /* ===== UPLOAD AREA ===== */
+    .upload-area {
+      border: 2px dashed var(--border); border-radius: var(--radius); padding: 40px;
+      text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg2);
+    }
+    .upload-area:hover, .upload-area.drag-over { border-color: var(--primary); background: rgba(108,71,255,0.05); }
+    .upload-area-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .upload-area-text { color: var(--text2); font-size: 0.9rem; }
+    #upload-file-input { display: none; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .admin-nav { overflow-x: auto; }
+      .admin-header { flex-direction: column; gap: 12px; }
+      .menu-buttons { flex-direction: column; }
+      .menu-btn { width: 100%; height: 120px; flex-direction: row; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- ===== LOGIN ===== -->
+<div id="page-login" class="page">
+  <div class="login-logo">Qd<span>Anuncio</span></div>
+  <p class="login-subtitle">Sistema de mídias para TV</p>
+  <div class="card login-card">
+    <h2 class="mb-2" style="font-size:1.2rem;font-weight:800;">Entrar na conta</h2>
+    <div id="login-alert" class="alert alert-error hidden"></div>
+    <form class="login-form" id="login-form">
+      <div>
+        <label class="label">CPF ou CNPJ</label>
+        <input id="login-doc" type="text" class="input-field" placeholder="000.000.000-00 ou 00.000.000/0001-00" maxlength="18" />
+      </div>
+      <div>
+        <label class="label">Senha</label>
+        <input id="login-pass" type="password" class="input-field" placeholder="••••••••" />
+      </div>
+      <button type="submit" class="btn btn-primary w-full" id="login-btn" style="margin-top:4px;">
+        Entrar
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MENU ===== -->
+<div id="page-menu" class="page">
+  <div class="menu-header">
+    <h1>Qd<span style="color:var(--primary)">Anuncio</span></h1>
+    <p id="menu-greeting" class="text-muted"></p>
+  </div>
+  <div class="menu-buttons">
+    <button class="menu-btn menu-btn-ofertas" onclick="goPlayer()">
+      <span class="menu-btn-icon">📺</span>
+      OFERTAS
+    </button>
+    <button class="menu-btn menu-btn-admin" onclick="goAdmin()">
+      <span class="menu-btn-icon">⚙️</span>
+      ADMINISTRAR
+    </button>
+  </div>
+  <div class="menu-logout">
+    <button class="btn btn-secondary" onclick="logout()">Sair da conta</button>
+  </div>
+</div>
+
+<!-- ===== PLAYER (OFERTAS) ===== -->
+<div id="page-player" class="page">
+  <div id="player-loading" class="player-loading">
+    <div class="spinner"></div>
+    <span style="color:var(--text2)">Carregando playlist...</span>
+  </div>
+  <div id="player-slides"></div>
+  <div class="player-progress" id="player-progress" style="width:0%"></div>
+  <div class="player-counter" id="player-counter">1/1</div>
+  <div class="player-ui">
+    <button class="btn btn-secondary btn-sm" onclick="prevSlide()">⏮ Anterior</button>
+    <button class="btn btn-secondary btn-sm" onclick="togglePause()" id="player-pause-btn">⏸ Pausar</button>
+    <button class="btn btn-secondary btn-sm" onclick="nextSlide()">Próximo ⏭</button>
+    <button class="btn btn-secondary btn-sm" onclick="exitPlayer()">✕ Sair</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN ===== -->
+<div id="page-admin" class="page flex-col">
+  <header class="admin-header">
+    <div class="admin-logo">Qd<span>Anuncio</span></div>
+    <nav class="admin-nav">
+      <button class="nav-btn active" onclick="showSection('media')">🖼 Mídias</button>
+      <button class="nav-btn" onclick="showSection('playlist')">📋 Playlist</button>
+      <button class="nav-btn" onclick="showSection('settings')">⚙️ Player</button>
+      <button class="nav-btn" onclick="showSection('account')">👤 Conta</button>
+    </nav>
+    <div class="flex gap-1">
+      <button class="btn btn-secondary btn-sm" onclick="goMenu()">← Menu</button>
+      <button class="btn btn-secondary btn-sm" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="admin-content">
+
+    <!-- MÍDIAS -->
+    <div id="section-media" class="section active">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="section-title" style="margin-bottom:0">Mídias</h2>
+        <button class="btn btn-primary btn-sm" onclick="openUploadModal()">+ Adicionar mídia</button>
+      </div>
+      <div id="media-grid" class="media-grid mt-2">
+        <div class="empty-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- PLAYLIST -->
+    <div id="section-playlist" class="section">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="section-title" style="margin-bottom:0">Playlists</h2>
+        <button class="btn btn-primary btn-sm" onclick="openCreatePlaylist()">+ Nova playlist</button>
+      </div>
+      <div id="playlist-list" class="playlist-list mt-2"></div>
+
+      <div id="playlist-editor" class="hidden mt-3">
+        <div class="flex justify-between items-center mb-2">
+          <h3 id="playlist-editor-title" style="font-size:1rem;font-weight:700;"></h3>
+          <div class="flex gap-1">
+            <button class="btn btn-secondary btn-sm" onclick="openAddToPlaylistModal()">+ Adicionar mídia</button>
+            <button class="btn btn-secondary btn-sm" onclick="savePlaylistOrder()">💾 Salvar ordem</button>
+            <button class="btn btn-secondary btn-sm" onclick="closePlaylistEditor()">✕</button>
+          </div>
+        </div>
+        <div id="dnd-list" class="dnd-list"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="section-settings" class="section">
+      <h2 class="section-title">Configurações do Player</h2>
+      <div class="card settings-form" id="settings-form">
+        <div class="spinner" style="margin:auto"></div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div id="section-account" class="section">
+      <h2 class="section-title">Minha Conta</h2>
+      <div class="flex gap-3" style="flex-wrap:wrap;align-items:flex-start;">
+        <div class="card" style="min-width:280px;flex:1;">
+          <h3 style="font-weight:700;margin-bottom:16px;">Dados da conta</h3>
+          <div id="account-alert" class="alert alert-success hidden"></div>
+          <div class="account-form">
+            <div>
+              <label class="label">CPF/CNPJ</label>
+              <input id="account-doc" type="text" class="input-field" disabled />
+            </div>
+            <div>
+              <label class="label">Nome fantasia</label>
+              <input id="account-name" type="text" class="input-field" placeholder="Nome da empresa" />
+            </div>
+            <button class="btn btn-primary" onclick="saveAccount()">Salvar</button>
+          </div>
+        </div>
+        <div class="card" style="min-width:280px;flex:1;">
+          <h3 style="font-weight:700;margin-bottom:16px;">Alterar senha</h3>
+          <div id="pwd-alert" class="alert alert-error hidden"></div>
+          <div class="account-form">
+            <div>
+              <label class="label">Senha atual</label>
+              <input id="pwd-current" type="password" class="input-field" placeholder="••••••••" />
+            </div>
+            <div>
+              <label class="label">Nova senha</label>
+              <input id="pwd-new" type="password" class="input-field" placeholder="••••••••" />
+            </div>
+            <div>
+              <label class="label">Confirmar nova senha</label>
+              <input id="pwd-confirm" type="password" class="input-field" placeholder="••••••••" />
+            </div>
+            <button class="btn btn-primary" onclick="changePassword()">Alterar senha</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Upload Modal -->
+<div id="modal-upload" class="modal-overlay">
+  <div class="modal">
+    <h3 class="modal-title">Adicionar mídia</h3>
+    <div id="upload-alert" class="alert alert-error hidden"></div>
+    <div class="upload-area" id="upload-area" onclick="document.getElementById('upload-file-input').click()">
+      <div class="upload-area-icon">📁</div>
+      <div id="upload-area-text" class="upload-area-text">Clique ou arraste uma imagem / vídeo aqui</div>
+      <div class="text-sm text-muted mt-1">JPG, PNG, GIF, WEBP, MP4, WEBM — máx. 100MB</div>
+    </div>
+    <input type="file" id="upload-file-input" accept="image/*,video/*" />
+    <div style="margin-top:14px;">
+      <label class="label">Título (opcional)</label>
+      <input id="upload-title" type="text" class="input-field" placeholder="Ex: Promoção de verão" />
+    </div>
+    <div id="upload-progress-wrap" class="hidden mt-2">
+      <div style="height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;">
+        <div id="upload-progress-bar" style="height:100%;background:var(--primary);width:0%;transition:width 0.3s;"></div>
+      </div>
+      <div id="upload-progress-text" class="text-sm text-muted mt-1 text-center">0%</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-upload')">Cancelar</button>
+      <button class="btn btn-primary" id="upload-submit-btn" onclick="submitUpload()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Playlist Modal -->
+<div id="modal-create-playlist" class="modal-overlay">
+  <div class="modal">
+    <h3 class="modal-title">Nova Playlist</h3>
+    <div id="create-playlist-alert" class="alert alert-error hidden"></div>
+    <div>
+      <label class="label">Nome da playlist</label>
+      <input id="new-playlist-name" type="text" class="input-field" placeholder="Ex: Principal" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-create-playlist')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createPlaylist()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Media to Playlist Modal -->
+<div id="modal-add-to-playlist" class="modal-overlay">
+  <div class="modal" style="max-width:560px;">
+    <h3 class="modal-title">Adicionar mídia à playlist</h3>
+    <div id="add-media-grid" class="media-grid" style="max-height:360px;overflow-y:auto;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-to-playlist')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div id="modal-confirm" class="modal-overlay">
+  <div class="modal" style="max-width:380px;">
+    <h3 class="modal-title" id="confirm-title">Confirmar</h3>
+    <p id="confirm-msg" style="color:var(--text2);font-size:0.9rem;"></p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-ok-btn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3001/api';
+let token = localStorage.getItem('qd_token');
+let currentClient = JSON.parse(localStorage.getItem('qd_client') || 'null');
+let currentPage = '';
+
+// ===== UTILS =====
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function showAlert(id, msg, type = 'error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = `alert alert-${type}`;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function hideAlert(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('hidden');
+}
+
+function formatDoc(doc) {
+  if (doc.length === 11) return doc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  return doc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function api(method, path, body, isFormData = false) {
+  const headers = {};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  if (!isFormData && body) headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(API + path, {
+    method,
+    headers,
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Erro na requisição');
+  return data;
+}
+
+// ===== PAGES =====
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentPage = id;
+}
+
+function checkAuth() {
+  if (!token) { showPage('page-login'); return false; }
+  return true;
+}
+
+// ===== LOGIN =====
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideAlert('login-alert');
+  const doc = document.getElementById('login-doc').value.replace(/\D/g, '');
+  const pass = document.getElementById('login-pass').value;
+
+  if (!doc || !pass) { showAlert('login-alert', 'Preencha todos os campos'); return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+
+  try {
+    const data = await api('POST', '/auth/login', { document: doc, password: pass });
+    token = data.token;
+    currentClient = data.client;
+    localStorage.setItem('qd_token', token);
+    localStorage.setItem('qd_client', JSON.stringify(currentClient));
+    goMenu();
+  } catch (err) {
+    showAlert('login-alert', err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+// CPF/CNPJ mask
+document.getElementById('login-doc').addEventListener('input', function () {
+  let v = this.value.replace(/\D/g, '');
+  if (v.length <= 11) {
+    v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  } else {
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+         .replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2');
+  }
+  this.value = v;
+});
+
+function logout() {
+  token = null; currentClient = null;
+  localStorage.removeItem('qd_token');
+  localStorage.removeItem('qd_client');
+  showPage('page-login');
+}
+
+function goMenu() {
+  if (currentClient) {
+    document.getElementById('menu-greeting').textContent = `Olá, ${currentClient.displayName}`;
+  }
+  showPage('page-menu');
+}
+
+// ===== PLAYER =====
+let playerItems = [];
+let playerSettings = {};
+let playerIndex = 0;
+let playerTimer = null;
+let playerPaused = false;
+let playerProgress = 0;
+let playerProgressInterval = null;
+
+async function goPlayer() {
+  if (!checkAuth()) return;
+  showPage('page-player');
+  document.getElementById('player-loading').style.display = 'flex';
+  document.getElementById('player-slides').innerHTML = '';
+
+  try {
+    const data = await api('GET', '/player/active');
+    playerSettings = data.settings;
+    playerItems = data.items;
+
+    if (!playerItems.length) {
+      document.getElementById('player-loading').innerHTML = '<p style="color:#aaa">Nenhuma mídia na playlist ativa.</p><button class="btn btn-secondary mt-2" onclick="exitPlayer()">Voltar</button>';
+      return;
+    }
+
+    document.getElementById('player-loading').style.display = 'none';
+    playerIndex = 0;
+    playerPaused = false;
+    document.getElementById('player-pause-btn').textContent = '⏸ Pausar';
+
+    buildSlides();
+    showSlide(0);
+
+    if (playerSettings.fullscreen_mode) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  } catch (err) {
+    document.getElementById('player-loading').innerHTML = `<p style="color:#f88">Erro: ${err.message}</p><button class="btn btn-secondary mt-2" onclick="exitPlayer()">Voltar</button>`;
+  }
+}
+
+function buildSlides() {
+  const container = document.getElementById('player-slides');
+  container.innerHTML = '';
+  const transition = (playerSettings.transition_type || 'FADE').toLowerCase();
+
+  playerItems.forEach((item, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'player-slide';
+    slide.id = `slide-${i}`;
+
+    if (item.media_type === 'IMAGE') {
+      const img = document.createElement('img');
+      img.src = item.file_url.startsWith('http') ? item.file_url : API.replace('/api', '') + item.file_url;
+      img.alt = item.title || '';
+      img.onerror = () => { console.warn('Imagem falhou:', item.file_url); skipSlide(i); };
+      slide.appendChild(img);
+    } else {
+      const video = document.createElement('video');
+      video.src = item.file_url.startsWith('http') ? item.file_url : API.replace('/api', '') + item.file_url;
+      video.muted = playerSettings.mute_videos !== 0;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.onerror = () => { console.warn('Vídeo falhou:', item.file_url); skipSlide(i); };
+      video.onended = () => { if (!playerPaused) nextSlide(); };
+      slide.appendChild(video);
+    }
+    container.appendChild(slide);
+  });
+}
+
+function showSlide(idx) {
+  clearTimeout(playerTimer);
+  clearInterval(playerProgressInterval);
+
+  document.querySelectorAll('.player-slide').forEach(s => s.classList.remove('active', 'zoom-in', 'slide-in'));
+
+  const slide = document.getElementById(`slide-${idx}`);
+  if (!slide) return;
+
+  const transition = (playerSettings.transition_type || 'FADE').toLowerCase();
+  if (transition === 'zoom') slide.classList.add('zoom-in');
+  else if (transition === 'slide') slide.classList.add('slide-in');
+  slide.classList.add('active');
+
+  const item = playerItems[idx];
+  document.getElementById('player-counter').textContent = `${idx + 1}/${playerItems.length}`;
+
+  // video
+  const video = slide.querySelector('video');
+  if (video) {
+    video.currentTime = 0;
+    video.play().catch(() => {});
+    return;
+  }
+
+  // image — progress bar
+  const duration = item.image_duration_ms_effective || 7000;
+  playerProgress = 0;
+  document.getElementById('player-progress').style.width = '0%';
+
+  const step = 100 / (duration / 100);
+  playerProgressInterval = setInterval(() => {
+    if (!playerPaused) {
+      playerProgress += step;
+      document.getElementById('player-progress').style.width = Math.min(playerProgress, 100) + '%';
+    }
+  }, 100);
+
+  playerTimer = setTimeout(() => {
+    if (!playerPaused) nextSlide();
+  }, duration);
+}
+
+function skipSlide(idx) {
+  if (idx === playerIndex) nextSlide();
+}
+
+function nextSlide() {
+  playerIndex = (playerIndex + 1) % playerItems.length;
+  showSlide(playerIndex);
+}
+
+function prevSlide() {
+  playerIndex = (playerIndex - 1 + playerItems.length) % playerItems.length;
+  showSlide(playerIndex);
+}
+
+function togglePause() {
+  playerPaused = !playerPaused;
+  document.getElementById('player-pause-btn').textContent = playerPaused ? '▶ Continuar' : '⏸ Pausar';
+
+  const slide = document.getElementById(`slide-${playerIndex}`);
+  const video = slide ? slide.querySelector('video') : null;
+  if (video) { playerPaused ? video.pause() : video.play(); }
+}
+
+function exitPlayer() {
+  clearTimeout(playerTimer);
+  clearInterval(playerProgressInterval);
+  if (document.fullscreenElement) document.exitFullscreen();
+  const slides = document.getElementById('player-slides');
+  slides.querySelectorAll('video').forEach(v => v.pause());
+  goMenu();
+}
+
+// ===== ADMIN =====
+function goAdmin() {
+  if (!checkAuth()) return;
+  showPage('page-admin');
+  loadMedia();
+  loadPlaylists();
+  loadSettings();
+  loadAccount();
+}
+
+function goMenu() {
+  showPage('page-menu');
+  if (currentClient) {
+    document.getElementById('menu-greeting').textContent = `Olá, ${currentClient.displayName}`;
+  }
+}
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`section-${name}`).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== MEDIA =====
+let allMedia = [];
+
+async function loadMedia() {
+  const grid = document.getElementById('media-grid');
+  grid.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:auto"></div></div>';
+  try {
+    allMedia = await api('GET', '/media');
+    renderMediaGrid(grid);
+  } catch (err) {
+    grid.innerHTML = `<p class="text-muted">${err.message}</p>`;
+  }
+}
+
+function renderMediaGrid(grid) {
+  if (!allMedia.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼</div><div class="empty-state-text">Nenhuma mídia cadastrada ainda</div></div>';
+    return;
+  }
+  grid.innerHTML = '';
+  allMedia.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'media-card' + (m.is_active ? '' : ' inactive');
+    const src = m.file_url.startsWith('http') ? m.file_url : API.replace('/api', '') + m.file_url;
+    const thumb = m.media_type === 'IMAGE'
+      ? `<img src="${src}" alt="${m.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🖼'" />`
+      : `<video src="${src}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🎬'" muted></video>`;
+
+    card.innerHTML = `
+      <div class="media-thumb">${thumb}</div>
+      <div class="media-info">
+        <div class="media-title">${m.title || m.file_name}</div>
+        <div class="media-meta">
+          <span class="badge ${m.media_type === 'IMAGE' ? 'badge-purple' : 'badge-orange'}">${m.media_type}</span>
+          &nbsp;${formatBytes(m.file_size_bytes)}
+        </div>
+        <div class="media-actions">
+          <button class="btn btn-secondary btn-sm" onclick="toggleMedia(${m.id}, ${m.is_active})">
+            ${m.is_active ? '🔴 Desativar' : '🟢 Ativar'}
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteMedia(${m.id}, '${(m.title || m.file_name).replace(/'/g, '')}')">🗑</button>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+async function toggleMedia(id, current) {
+  try {
+    await api('PATCH', `/media/${id}`, { is_active: !current });
+    toast(current ? 'Mídia desativada' : 'Mídia ativada', 'success');
+    loadMedia();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+function confirmDeleteMedia(id, name) {
+  document.getElementById('confirm-title').textContent = 'Remover mídia';
+  document.getElementById('confirm-msg').textContent = `Deseja remover "${name}"? Esta ação não pode ser desfeita.`;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.onclick = async () => {
+    closeModal('modal-confirm');
+    try {
+      await api('DELETE', `/media/${id}`);
+      toast('Mídia removida', 'success');
+      loadMedia();
+    } catch (err) { toast(err.message, 'error'); }
+  };
+  openModal('modal-confirm');
+}
+
+// Upload
+let selectedFile = null;
+function openUploadModal() {
+  selectedFile = null;
+  document.getElementById('upload-file-input').value = '';
+  document.getElementById('upload-title').value = '';
+  document.getElementById('upload-area-text').textContent = 'Clique ou arraste uma imagem / vídeo aqui';
+  document.getElementById('upload-progress-wrap').classList.add('hidden');
+  document.getElementById('upload-progress-bar').style.width = '0%';
+  hideAlert('upload-alert');
+  openModal('modal-upload');
+}
+
+document.getElementById('upload-file-input').addEventListener('change', function () {
+  if (this.files[0]) {
+    selectedFile = this.files[0];
+    document.getElementById('upload-area-text').textContent = `Arquivo: ${selectedFile.name}`;
+  }
+});
+
+const uploadArea = document.getElementById('upload-area');
+uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault(); uploadArea.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) {
+    selectedFile = e.dataTransfer.files[0];
+    document.getElementById('upload-area-text').textContent = `Arquivo: ${selectedFile.name}`;
+  }
+});
+
+async function submitUpload() {
+  if (!selectedFile) { showAlert('upload-alert', 'Selecione um arquivo'); return; }
+  hideAlert('upload-alert');
+
+  const btn = document.getElementById('upload-submit-btn');
+  btn.disabled = true;
+  document.getElementById('upload-progress-wrap').classList.remove('hidden');
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  const title = document.getElementById('upload-title').value.trim();
+  if (title) formData.append('title', title);
+
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', API + '/media');
+    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const pct = Math.round(e.loaded / e.total * 100);
+        document.getElementById('upload-progress-bar').style.width = pct + '%';
+        document.getElementById('upload-progress-text').textContent = pct + '%';
+      }
+    };
+
+    xhr.onload = () => {
+      btn.disabled = false;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        toast('Mídia enviada com sucesso!', 'success');
+        closeModal('modal-upload');
+        loadMedia();
+      } else {
+        const err = JSON.parse(xhr.responseText || '{}');
+        showAlert('upload-alert', err.error || 'Erro no upload');
+      }
+    };
+    xhr.onerror = () => { btn.disabled = false; showAlert('upload-alert', 'Falha na conexão'); };
+    xhr.send(formData);
+  } catch (err) {
+    btn.disabled = false;
+    showAlert('upload-alert', err.message);
+  }
+}
+
+// ===== PLAYLISTS =====
+let playlists = [];
+let currentPlaylistId = null;
+let playlistItems = [];
+
+async function loadPlaylists() {
+  const list = document.getElementById('playlist-list');
+  list.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:auto"></div></div>';
+  try {
+    playlists = await api('GET', '/playlists');
+    renderPlaylists();
+  } catch (err) {
+    list.innerHTML = `<p class="text-muted">${err.message}</p>`;
+  }
+}
+
+function renderPlaylists() {
+  const list = document.getElementById('playlist-list');
+  if (!playlists.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Nenhuma playlist criada</div></div>';
+    return;
+  }
+  list.innerHTML = '';
+  playlists.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'playlist-item';
+    item.innerHTML = `
+      <div class="playlist-item-info">
+        <span class="playlist-item-name">${p.name}</span>
+        <span class="badge ${p.is_active ? 'badge-green' : 'badge-red'}">${p.is_active ? 'Ativa' : 'Inativa'}</span>
+      </div>
+      <div class="playlist-item-actions">
+        ${!p.is_active ? `<button class="btn btn-success btn-sm" onclick="activatePlaylist(${p.id})">✅ Ativar</button>` : ''}
+        <button class="btn btn-secondary btn-sm" onclick="editPlaylist(${p.id}, '${p.name.replace(/'/g, '')}')">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDeletePlaylist(${p.id}, '${p.name.replace(/'/g, '')}')">🗑</button>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+async function activatePlaylist(id) {
+  try {
+    await api('PATCH', `/playlists/${id}/activate`);
+    toast('Playlist ativada!', 'success');
+    loadPlaylists();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+function openCreatePlaylist() {
+  document.getElementById('new-playlist-name').value = '';
+  hideAlert('create-playlist-alert');
+  openModal('modal-create-playlist');
+}
+
+async function createPlaylist() {
+  const name = document.getElementById('new-playlist-name').value.trim();
+  if (!name) { showAlert('create-playlist-alert', 'Nome obrigatório'); return; }
+  try {
+    await api('POST', '/playlists', { name });
+    toast('Playlist criada!', 'success');
+    closeModal('modal-create-playlist');
+    loadPlaylists();
+  } catch (err) { showAlert('create-playlist-alert', err.message); }
+}
+
+function confirmDeletePlaylist(id, name) {
+  document.getElementById('confirm-title').textContent = 'Remover playlist';
+  document.getElementById('confirm-msg').textContent = `Deseja remover "${name}"?`;
+  document.getElementById('confirm-ok-btn').onclick = async () => {
+    closeModal('modal-confirm');
+    try {
+      await api('DELETE', `/playlists/${id}`);
+      toast('Playlist removida', 'success');
+      loadPlaylists();
+    } catch (err) { toast(err.message, 'error'); }
+  };
+  openModal('modal-confirm');
+}
+
+async function editPlaylist(id, name) {
+  currentPlaylistId = id;
+  document.getElementById('playlist-editor-title').textContent = `✏️ Editando: ${name}`;
+  document.getElementById('playlist-editor').classList.remove('hidden');
+  await loadPlaylistItems();
+}
+
+function closePlaylistEditor() {
+  currentPlaylistId = null;
+  document.getElementById('playlist-editor').classList.add('hidden');
+}
+
+async function loadPlaylistItems() {
+  const list = document.getElementById('dnd-list');
+  list.innerHTML = '<div class="spinner" style="margin:auto"></div>';
+  try {
+    playlistItems = await api('GET', `/playlists/${currentPlaylistId}/items`);
+    renderDndList();
+  } catch (err) {
+    list.innerHTML = `<p class="text-muted">${err.message}</p>`;
+  }
+}
+
+function renderDndList() {
+  const list = document.getElementById('dnd-list');
+  if (!playlistItems.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎞</div><div class="empty-state-text">Nenhum item na playlist</div></div>';
+    return;
+  }
+  list.innerHTML = '';
+  playlistItems.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'dnd-item';
+    el.draggable = true;
+    el.dataset.index = i;
+    el.dataset.id = item.id;
+
+    const src = item.file_url.startsWith('http') ? item.file_url : API.replace('/api', '') + item.file_url;
+    const thumbContent = item.media_type === 'IMAGE'
+      ? `<img src="${src}" alt="" onerror="this.parentElement.innerHTML='🖼'" />`
+      : `🎬`;
+
+    const durSeconds = item.media_type === 'IMAGE'
+      ? Math.round((item.image_duration_ms || item.image_duration_ms_effective || 7000) / 1000)
+      : null;
+
+    el.innerHTML = `
+      <span class="dnd-handle">⠿</span>
+      <div class="dnd-thumb">${thumbContent}</div>
+      <div class="dnd-info">
+        <div class="dnd-title">${item.title || item.file_name || 'Sem título'}</div>
+        <div class="dnd-meta">${item.media_type} &bull; ${item.is_active ? 'Ativo' : 'Inativo'}</div>
+      </div>
+      ${item.media_type === 'IMAGE' ? `
+        <div class="dnd-duration">
+          <input type="number" min="1" max="600" value="${durSeconds}" title="Duração em segundos" data-item-id="${item.id}" />
+          <span class="text-sm text-muted">s</span>
+        </div>` : ''}
+      <div class="flex gap-1">
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="togglePlaylistItem(${item.id}, ${item.is_active})" title="${item.is_active ? 'Desativar' : 'Ativar'}">
+          ${item.is_active ? '🔴' : '🟢'}
+        </button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="removePlaylistItem(${item.id})" title="Remover">🗑</button>
+      </div>`;
+
+    setupDnd(el);
+    list.appendChild(el);
+  });
+}
+
+async function togglePlaylistItem(id, current) {
+  try {
+    await api('PATCH', `/playlists/${currentPlaylistId}/items/${id}`, { is_active: !current });
+    toast(current ? 'Item desativado' : 'Item ativado', 'success');
+    loadPlaylistItems();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function removePlaylistItem(id) {
+  try {
+    await api('DELETE', `/playlists/${currentPlaylistId}/items/${id}`);
+    toast('Item removido', 'success');
+    loadPlaylistItems();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function savePlaylistOrder() {
+  const items = [...document.querySelectorAll('.dnd-item')].map((el, i) => {
+    const id = parseInt(el.dataset.id);
+    const durInput = el.querySelector(`input[data-item-id="${id}"]`);
+    const durSec = durInput ? parseInt(durInput.value) : null;
+    return { id, sort_order: i + 1, dur_ms: durSec ? durSec * 1000 : null };
+  });
+
+  try {
+    await api('PUT', `/playlists/${currentPlaylistId}/items/reorder`, { items });
+
+    for (const item of items) {
+      if (item.dur_ms !== null) {
+        await api('PATCH', `/playlists/${currentPlaylistId}/items/${item.id}`, { image_duration_ms: item.dur_ms });
+      }
+    }
+    toast('Ordem e durações salvas!', 'success');
+    loadPlaylistItems();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+function openAddToPlaylistModal() {
+  const grid = document.getElementById('add-media-grid');
+  grid.innerHTML = '';
+  const active = allMedia.filter(m => m.is_active);
+  if (!active.length) {
+    grid.innerHTML = '<p class="text-muted text-sm">Nenhuma mídia ativa disponível</p>';
+    openModal('modal-add-to-playlist');
+    return;
+  }
+  active.forEach(m => {
+    const el = document.createElement('div');
+    el.className = 'media-card';
+    const src = m.file_url.startsWith('http') ? m.file_url : API.replace('/api', '') + m.file_url;
+    el.innerHTML = `
+      <div class="media-thumb">
+        ${m.media_type === 'IMAGE' ? `<img src="${src}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;" />` : '🎬'}
+      </div>
+      <div class="media-info">
+        <div class="media-title">${m.title || m.file_name}</div>
+        <button class="btn btn-primary btn-sm w-full mt-1" onclick="addToPlaylist(${m.id})">+ Adicionar</button>
+      </div>`;
+    grid.appendChild(el);
+  });
+  openModal('modal-add-to-playlist');
+}
+
+async function addToPlaylist(mediaId) {
+  try {
+    await api('POST', `/playlists/${currentPlaylistId}/items`, { media_id: mediaId });
+    toast('Mídia adicionada!', 'success');
+    closeModal('modal-add-to-playlist');
+    loadPlaylistItems();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// Drag and drop
+let dragSrcIndex = null;
+function setupDnd(el) {
+  el.addEventListener('dragstart', () => {
+    dragSrcIndex = parseInt(el.dataset.index);
+    el.classList.add('dragging');
+  });
+  el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+    el.classList.remove('drag-over');
+    const targetIndex = parseInt(el.dataset.index);
+    if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+    const [moved] = playlistItems.splice(dragSrcIndex, 1);
+    playlistItems.splice(targetIndex, 0, moved);
+    renderDndList();
+  });
+}
+
+// ===== SETTINGS =====
+async function loadSettings() {
+  const form = document.getElementById('settings-form');
+  try {
+    const s = await api('GET', '/settings');
+    form.innerHTML = `
+      <div class="settings-group">
+        <label class="label">Tipo de transição</label>
+        <select id="s-transition" class="input-field">
+          <option value="FADE" ${s.transition_type === 'FADE' ? 'selected' : ''}>Fade (desvanecer)</option>
+          <option value="SLIDE" ${s.transition_type === 'SLIDE' ? 'selected' : ''}>Slide (deslizar)</option>
+          <option value="ZOOM" ${s.transition_type === 'ZOOM' ? 'selected' : ''}>Zoom</option>
+        </select>
+      </div>
+      <div class="settings-group">
+        <label class="label">Duração da transição (ms)</label>
+        <input id="s-trans-dur" type="number" class="input-field" value="${s.transition_duration_ms}" min="100" max="3000" step="100" />
+      </div>
+      <div class="settings-group">
+        <label class="label">Tempo padrão por imagem (ms)</label>
+        <input id="s-img-dur" type="number" class="input-field" value="${s.default_image_duration_ms}" min="1000" max="60000" step="500" />
+      </div>
+      <div class="settings-row">
+        <div>
+          <div style="font-weight:600;">Vídeos no mudo</div>
+          <div class="text-sm text-muted">Reproduzir vídeos sem áudio</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="s-mute" ${s.mute_videos ? 'checked' : ''} />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div style="font-weight:600;">Tela cheia automática</div>
+          <div class="text-sm text-muted">Entrar em fullscreen ao abrir OFERTAS</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="s-fullscreen" ${s.fullscreen_mode ? 'checked' : ''} />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()">💾 Salvar configurações</button>`;
+  } catch (err) {
+    form.innerHTML = `<p class="text-muted">${err.message}</p>`;
+  }
+}
+
+async function saveSettings() {
+  try {
+    await api('PATCH', '/settings', {
+      transition_type: document.getElementById('s-transition').value,
+      transition_duration_ms: parseInt(document.getElementById('s-trans-dur').value),
+      default_image_duration_ms: parseInt(document.getElementById('s-img-dur').value),
+      mute_videos: document.getElementById('s-mute').checked,
+      fullscreen_mode: document.getElementById('s-fullscreen').checked,
+    });
+    toast('Configurações salvas!', 'success');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ===== ACCOUNT =====
+async function loadAccount() {
+  try {
+    const acc = await api('GET', '/account');
+    document.getElementById('account-doc').value = formatDoc(acc.document);
+    document.getElementById('account-name').value = acc.display_name;
+  } catch (err) { console.error(err); }
+}
+
+async function saveAccount() {
+  const name = document.getElementById('account-name').value.trim();
+  if (!name) { showAlert('account-alert', 'Nome obrigatório', 'error'); return; }
+  try {
+    const acc = await api('PATCH', '/account', { display_name: name });
+    currentClient.displayName = acc.display_name;
+    localStorage.setItem('qd_client', JSON.stringify(currentClient));
+    showAlert('account-alert', 'Dados salvos!', 'success');
+    toast('Dados atualizados!', 'success');
+  } catch (err) { showAlert('account-alert', err.message, 'error'); }
+}
+
+async function changePassword() {
+  hideAlert('pwd-alert');
+  const cur = document.getElementById('pwd-current').value;
+  const nw = document.getElementById('pwd-new').value;
+  const conf = document.getElementById('pwd-confirm').value;
+
+  if (!cur || !nw || !conf) { showAlert('pwd-alert', 'Preencha todos os campos'); return; }
+  if (nw !== conf) { showAlert('pwd-alert', 'As senhas não coincidem'); return; }
+  if (nw.length < 6) { showAlert('pwd-alert', 'Mínimo 6 caracteres'); return; }
+
+  try {
+    await api('POST', '/account/change-password', { current_password: cur, new_password: nw });
+    toast('Senha alterada com sucesso!', 'success');
+    document.getElementById('pwd-current').value = '';
+    document.getElementById('pwd-new').value = '';
+    document.getElementById('pwd-confirm').value = '';
+  } catch (err) { showAlert('pwd-alert', err.message); }
+}
+
+// ===== INIT =====
+(function init() {
+  if (token && currentClient) {
+    goMenu();
+  } else {
+    showPage('page-login');
+  }
+})();
+</script>
+</body>
+</html>
