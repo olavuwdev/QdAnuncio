@@ -1,0 +1,16 @@
+# Dependências
+node_modules/
+
+# Ambiente e segredos
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Uploads (arquivos gerados)
+backend/uploads/
+
+# Logs e cache
+*.log
+.DS_Store
+.vercel

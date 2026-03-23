@@ -158,6 +158,21 @@
     .menu-btn-ofertas:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(108,71,255,0.4); }
     .menu-btn-admin { background: linear-gradient(135deg, var(--accent), #ff9e60); color: #fff; }
     .menu-btn-admin:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(255,107,53,0.4); }
+    .menu-remember { margin-top: 28px; display: flex; align-items: center; gap: 10px; }
+    .menu-remember .text-sm { color: var(--text2); user-select: none; cursor: pointer; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-slider {
+      position: absolute; inset: 0; background: var(--border);
+      border-radius: 24px; transition: background 0.2s; cursor: pointer;
+    }
+    .switch-slider::before {
+      content: ''; position: absolute; width: 18px; height: 18px;
+      left: 3px; top: 3px; background: #fff; border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .switch input:checked + .switch-slider { background: var(--primary); }
+    .switch input:checked + .switch-slider::before { transform: translateX(20px); }
     .menu-logout { margin-top: 32px; }
 
     /* ===== PLAYER PAGE (OFERTAS) ===== */
@@ -370,6 +385,13 @@
       ADMINISTRAR
     </button>
   </div>
+  <div class="menu-remember">
+    <label class="switch">
+      <input type="checkbox" id="remember-option" onchange="onRememberChange(this.checked)" />
+      <span class="switch-slider"></span>
+    </label>
+    <label for="remember-option" class="text-sm">Lembrar opção</label>
+  </div>
   <div class="menu-logout">
     <button class="btn btn-secondary" onclick="logout()">Sair da conta</button>
   </div>
@@ -564,7 +586,8 @@
 </div>
 
 <script>
-const API = 'http://localhost:3001/api';
+// Em desenvolvimento: localhost:3001. Em produção (Vercel): mesmo domínio (rewrites fazem proxy)
+const API = (window.location.hostname === 'localhost' ? 'http://localhost:3001' : window.location.origin) + '/api';
 let token = localStorage.getItem('qd_token');
 let currentClient = JSON.parse(localStorage.getItem('qd_client') || 'null');
 let currentPage = '';
@@ -674,7 +697,14 @@ function logout() {
   token = null; currentClient = null;
   localStorage.removeItem('qd_token');
   localStorage.removeItem('qd_client');
+  localStorage.removeItem('qd_remember_page');
   showPage('page-login');
+}
+
+function onRememberChange(checked) {
+  if (!checked) {
+    localStorage.removeItem('qd_remember_page');
+  }
 }
 
 function goMenu() {
@@ -695,6 +725,9 @@ let playerProgressInterval = null;
 
 async function goPlayer() {
   if (!checkAuth()) return;
+  if (document.getElementById('remember-option').checked) {
+    localStorage.setItem('qd_remember_page', 'page-player');
+  }
   showPage('page-player');
   document.getElementById('player-loading').style.display = 'flex';
   document.getElementById('player-slides').innerHTML = '';
@@ -833,6 +866,9 @@ function exitPlayer() {
 // ===== ADMIN =====
 function goAdmin() {
   if (!checkAuth()) return;
+  if (document.getElementById('remember-option').checked) {
+    localStorage.setItem('qd_remember_page', 'page-admin');
+  }
   showPage('page-admin');
   loadMedia();
   loadPlaylists();
@@ -1346,7 +1382,19 @@ async function changePassword() {
 // ===== INIT =====
 (function init() {
   if (token && currentClient) {
-    goMenu();
+    const remembered = localStorage.getItem('qd_remember_page');
+    if (remembered) {
+      document.getElementById('remember-option').checked = true;
+      if (remembered === 'page-player') {
+        goPlayer();
+      } else if (remembered === 'page-admin') {
+        goAdmin();
+      } else {
+        goMenu();
+      }
+    } else {
+      goMenu();
+    }
   } else {
     showPage('page-login');
   }
