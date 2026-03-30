@@ -1,0 +1,71 @@
+-- QdAnuncio — Setup inicial do banco de dados
+-- Execute este script no banco: ordenaaqui11
+
+CREATE TABLE IF NOT EXISTS clients (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  document VARCHAR(14) NOT NULL,
+  display_name VARCHAR(120) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_clients_document (document)
+);
+
+CREATE TABLE IF NOT EXISTS media_assets (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  client_id BIGINT UNSIGNED NOT NULL,
+  media_type ENUM('IMAGE','VIDEO') NOT NULL,
+  title VARCHAR(160),
+  file_name VARCHAR(255) NOT NULL,
+  file_url VARCHAR(1000) NOT NULL,
+  mime_type VARCHAR(120),
+  file_size_bytes BIGINT UNSIGNED,
+  width_px INT UNSIGNED,
+  height_px INT UNSIGNED,
+  duration_ms INT UNSIGNED,
+  is_active TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_media_client (client_id)
+);
+
+CREATE TABLE IF NOT EXISTS playlists (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  client_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(120) NOT NULL,
+  is_active TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_playlist_client (client_id)
+);
+
+CREATE TABLE IF NOT EXISTS playlist_items (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  playlist_id BIGINT UNSIGNED NOT NULL,
+  media_id BIGINT UNSIGNED NOT NULL,
+  sort_order INT NOT NULL,
+  image_duration_ms INT UNSIGNED,
+  is_active TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_playlist (playlist_id),
+  KEY idx_media (media_id)
+);
+
+CREATE TABLE IF NOT EXISTS client_settings (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  client_id BIGINT UNSIGNED NOT NULL,
+  transition_type ENUM('FADE','SLIDE','ZOOM') DEFAULT 'FADE',
+  transition_duration_ms INT UNSIGNED DEFAULT 600,
+  default_image_duration_ms INT UNSIGNED DEFAULT 7000,
+  mute_videos TINYINT(1) DEFAULT 1,
+  fullscreen_mode TINYINT(1) DEFAULT 1,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_settings_client (client_id)
+);

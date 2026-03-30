@@ -1,0 +1,21 @@
+# QdAnuncio — Apache configuration
+# Enable rewrite engine for clean URLs (optional)
+
+RewriteEngine On
+
+# Serve existing files and directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# PHP upload limits
+php_value upload_max_filesize 100M
+php_value post_max_size 110M
+php_value max_execution_time 120
+php_value max_input_time 120
+
+# Disable directory listing
+Options -Indexes
+
+# Set default charset
+AddDefaultCharset UTF-8
