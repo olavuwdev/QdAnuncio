@@ -24,6 +24,7 @@ if (isset($body['transition_duration_ms'])) { $fields[] = 'transition_duration_m
 if (isset($body['default_image_duration_ms'])) { $fields[] = 'default_image_duration_ms = ?'; $values[] = $body['default_image_duration_ms']; }
 if (isset($body['mute_videos'])) { $fields[] = 'mute_videos = ?'; $values[] = $body['mute_videos'] ? 1 : 0; }
 if (isset($body['fullscreen_mode'])) { $fields[] = 'fullscreen_mode = ?'; $values[] = $body['fullscreen_mode'] ? 1 : 0; }
+if (isset($body['portrait_mode'])) { $fields[] = 'portrait_mode = ?'; $values[] = $body['portrait_mode'] ? 1 : 0; }
 
 if (empty($fields)) json_error('Nada para atualizar');
 

@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS client_settings (
   default_image_duration_ms INT UNSIGNED DEFAULT 7000,
   mute_videos TINYINT(1) DEFAULT 1,
   fullscreen_mode TINYINT(1) DEFAULT 1,
+  portrait_mode TINYINT(1) DEFAULT 0,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_settings_client (client_id)

@@ -158,6 +158,14 @@ async function goPlayer() {
     playerPaused = false;
     document.getElementById('player-pause-btn').textContent = '⏸ Pausar';
 
+    // Aplicar modo retrato se ativo
+    const playerPage = document.getElementById('page-player');
+    if (playerSettings.portrait_mode) {
+      playerPage.classList.add('portrait-mode');
+    } else {
+      playerPage.classList.remove('portrait-mode');
+    }
+
     buildSlides();
     showSlide(0);
 
@@ -685,46 +693,45 @@ function setupDnd(el) {
 // ===== SETTINGS =====
 async function loadSettings() {
   const form = document.getElementById('settings-form');
+  form.innerHTML = '<div class="spinner" style="margin:auto"></div>';
   try {
-    const s = await api('GET', '/retornar-configuracoes.php');
+    const [s, p] = await Promise.all([
+      api('GET', '/retornar-configuracoes.php'),
+      api('GET', '/listar-playlists.php')
+    ]);
+
+    const playlistOptions = p.map(pl => `<option value="${pl.id}" ${pl.is_active ? 'selected' : ''}>${pl.name}</option>`).join('');
+
     form.innerHTML = `
       <div class="settings-group">
-        <label class="label">Tipo de transição</label>
+        <div class="settings-row">
+          <div><span class="font-bold">Modo tela cheia</span><br><span class="text-sm text-muted">O player deve iniciar em tela cheia</span></div>
+          <label class="toggle">
+            <input type="checkbox" id="s-fullscreen" ${s.fullscreen_mode ? 'checked' : ''} />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div><span class="font-bold">Modo Retrato</span><br><span class="text-sm text-muted">Girar a apresentação para vertical</span></div>
+          <label class="toggle">
+            <input type="checkbox" id="s-portrait" ${s.portrait_mode ? 'checked' : ''} />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="settings-group">
+        <label class="label" style="font-weight:700;color:var(--text)">Transição entre slides</label>
         <select id="s-transition" class="input-field">
-          <option value="FADE" ${s.transition_type === 'FADE' ? 'selected' : ''}>Fade (desvanecer)</option>
-          <option value="SLIDE" ${s.transition_type === 'SLIDE' ? 'selected' : ''}>Slide (deslizar)</option>
-          <option value="ZOOM" ${s.transition_type === 'ZOOM' ? 'selected' : ''}>Zoom</option>
+          <option value="fade" ${s.transition_type === 'fade' ? 'selected' : ''}>Fade (padrão)</option>
+          <option value="zoom" ${s.transition_type === 'zoom' ? 'selected' : ''}>Zoom</option>
+          <option value="slide" ${s.transition_type === 'slide' ? 'selected' : ''}>Slide</option>
         </select>
       </div>
       <div class="settings-group">
-        <label class="label">Duração da transição (ms)</label>
-        <input id="s-trans-dur" type="number" class="input-field" value="${s.transition_duration_ms}" min="100" max="3000" step="100" />
+        <label class="label" style="font-weight:700;color:var(--text)">Playlist ativa</label>
+        <select id="s-playlist" class="input-field">${playlistOptions}</select>
       </div>
-      <div class="settings-group">
-        <label class="label">Tempo padrão por imagem (ms)</label>
-        <input id="s-img-dur" type="number" class="input-field" value="${s.default_image_duration_ms}" min="1000" max="60000" step="500" />
-      </div>
-      <div class="settings-row">
-        <div>
-          <div style="font-weight:600;">Vídeos no mudo</div>
-          <div class="text-sm text-muted">Reproduzir vídeos sem áudio</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="s-mute" ${s.mute_videos ? 'checked' : ''} />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="settings-row">
-        <div>
-          <div style="font-weight:600;">Tela cheia automática</div>
-          <div class="text-sm text-muted">Entrar em fullscreen ao abrir OFERTAS</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="s-fullscreen" ${s.fullscreen_mode ? 'checked' : ''} />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <button class="btn btn-primary" onclick="saveSettings()">💾 Salvar configurações</button>`;
+      <button class="btn btn-primary" onclick="saveSettings()">Salvar configurações</button>`;
   } catch (err) {
     form.innerHTML = `<p class="text-muted">${err.message}</p>`;
   }
@@ -732,14 +739,16 @@ async function loadSettings() {
 
 async function saveSettings() {
   try {
+    const activePlaylistId = document.getElementById('s-playlist').value;
+    await api('PATCH', `/ativar-playlist.php?id=${activePlaylistId}`);
+
     await api('PATCH', '/salvar-configuracoes.php', {
-      transition_type: document.getElementById('s-transition').value,
-      transition_duration_ms: parseInt(document.getElementById('s-trans-dur').value),
-      default_image_duration_ms: parseInt(document.getElementById('s-img-dur').value),
-      mute_videos: document.getElementById('s-mute').checked,
       fullscreen_mode: document.getElementById('s-fullscreen').checked,
+      portrait_mode: document.getElementById('s-portrait').checked,
+      transition_type: document.getElementById('s-transition').value,
     });
     toast('Configurações salvas!', 'success');
+    loadPlaylists(); // Recarrega playlists para mostrar qual está ativa
   } catch (err) { toast(err.message, 'error'); }
 }
 
